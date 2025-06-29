@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel Pemilu MPK SMAN 23 Bandung</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+    <!-- Loading Spinner -->
+    <div class="loading-spinner">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
+    <!-- Login Page -->
+    <div id="login-page">
+        <div class="login-container">
+            <h2 class="text-center mb-4">Admin Login</h2>
+            <form id="login-form">
+                <div class="mb-3">
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text" class="form-control" id="username" required>
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="password" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Login</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div id="admin-panel">
+        <nav class="navbar navbar-expand navbar-light shadow-sm">
+            <div class="container-fluid">
+                <button class="btn btn-link d-md-none" id="sidebarToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <a class="navbar-brand" href="#">Admin Panel Pemilu MPK</a>
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle me-1"></i> Admin
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <a class="dropdown-item" href="#" id="logout-btn">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <div class="d-flex">
+            <!-- Sidebar -->
+            <div class="sidebar" id="sidebar">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#" data-section="dashboard">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-section="data-by-date">
+                            <i class="fas fa-calendar-alt"></i> Data by Tanggal
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-section="data-by-candidate">
+                            <i class="fas fa-users"></i> Data by Kandidat
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-section="manage-data">
+                            <i class="fas fa-database"></i> Kelola Data
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Main Content -->
+            <div class="main-content" id="main-content">
+                <!-- Dashboard Section -->
+                <div id="dashboard-section" class="section-content">
+                    <h2 class="mb-4">Dashboard Pemilu MPK SMAN 23 Bandung</h2>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Statistik Pemilihan</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-container">
+                                        <canvas id="votesChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Statistik Harian</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-container">
+                                        <canvas id="dailyChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card mt-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">Data Pemilihan Terbaru</h5>
+                            <div>
+                                <button class="btn btn-sm btn-primary" id="refresh-data">
+                                    <i class="fas fa-sync-alt me-1"></i> Refresh
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover" id="recent-data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>NISN</th>
+                                            <th>NIPD</th>
+                                            <th>Kandidat</th>
+                                            <th>Nama Kandidat</th>
+                                            <th>Tanggal</th>
+                                            <th>Waktu</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Data will be loaded here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data by Date Section -->
+                <div id="data-by-date-section" class="section-content" style="display: none;">
+                    <h2 class="mb-4">Data Berdasarkan Tanggal</h2>
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Filter Data</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="date-filter" class="form-label">Pilih Tanggal</label>
+                                        <input type="date" class="form-control" id="date-filter">
+                                    </div>
+                                </div>
+                                <div class="col-md-6 d-flex align-items-end">
+                                    <button class="btn btn-primary" id="filter-by-date">
+                                        <i class="fas fa-filter me-1"></i> Filter
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">Hasil Filter</h5>
+                            <div>
+                                <button class="btn btn-sm btn-success me-2" id="export-date-data">
+                                    <i class="fas fa-file-excel me-1"></i> Export
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container mb-4">
+                                <canvas id="dateChart"></canvas>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover" id="date-data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>NISN</th>
+                                            <th>NIPD</th>
+                                            <th>Kandidat</th>
+                                            <th>Nama Kandidat</th>
+                                            <th>Waktu</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Data will be loaded here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data by Candidate Section -->
+                <div id="data-by-candidate-section" class="section-content" style="display: none;">
+                    <h2 class="mb-4">Data Berdasarkan Kandidat</h2>
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Filter Data</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="candidate-filter" class="form-label">Pilih Kandidat</label>
+                                        <select class="form-select" id="candidate-filter">
+                                            <option value="">Semua Kandidat</option>
+                                            <!-- Options will be loaded dynamically -->
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 d-flex align-items-end">
+                                    <button class="btn btn-primary" id="filter-by-candidate">
+                                        <i class="fas fa-filter me-1"></i> Filter
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">Hasil Filter</h5>
+                            <div>
+                                <button class="btn btn-sm btn-success me-2" id="export-candidate-data">
+                                    <i class="fas fa-file-excel me-1"></i> Export
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container mb-4">
+                                <canvas id="candidateChart"></canvas>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover" id="candidate-data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>NISN</th>
+                                            <th>NIPD</th>
+                                            <th>Kandidat</th>
+                                            <th>Tanggal</th>
+                                            <th>Waktu</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Data will be loaded here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Manage Data Section -->
+                <div id="manage-data-section" class="section-content" style="display: none;">
+                    <h2 class="mb-4">Kelola Data Pemilihan</h2>
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Tambah Data Baru</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="add-data-form">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="new-nisn" class="form-label">NISN</label>
+                                            <input type="text" class="form-control" id="new-nisn" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="new-nipd" class="form-label">NIPD</label>
+                                            <input type="text" class="form-control" id="new-nipd" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="new-candidate" class="form-label">Kandidat</label>
+                                            <select class="form-select" id="new-candidate" required>
+                                                <!-- Options will be loaded dynamically -->
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="new-date" class="form-label">Tanggal</label>
+                                            <input type="date" class="form-control" id="new-date" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="new-time" class="form-label">Waktu</label>
+                                            <input type="time" class="form-control" id="new-time" required>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-plus me-1"></i> Tambah Data
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">Semua Data Pemilihan</h5>
+                            <div>
+                                <button class="btn btn-sm btn-primary me-2" id="refresh-all-data">
+                                    <i class="fas fa-sync-alt me-1"></i> Refresh
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover" id="all-data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>NISN</th>
+                                            <th>NIPD</th>
+                                            <th>Kandidat</th>
+                                            <th>Nama Kandidat</th>
+                                            <th>Tanggal</th>
+                                            <th>Waktu</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Data will be loaded here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Modal -->
+        <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Data Pemilihan</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="edit-data-form">
+                            <input type="hidden" id="edit-key">
+                            <div class="mb-3">
+                                <label for="edit-nisn" class="form-label">NISN</label>
+                                <input type="text" class="form-control" id="edit-nisn" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit-nipd" class="form-label">NIPD</label>
+                                <input type="text" class="form-control" id="edit-nipd" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit-candidate" class="form-label">Kandidat</label>
+                                <select class="form-select" id="edit-candidate" required>
+                                    <!-- Options will be loaded dynamically -->
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit-date" class="form-label">Tanggal</label>
+                                <input type="date" class="form-control" id="edit-date" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit-time" class="form-label">Waktu</label>
+                                <input type="time" class="form-control" id="edit-time" required>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="button" class="btn btn-primary" id="save-edit">Simpan Perubahan</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action History Buttons -->
+        <div class="action-history">
+            <div class="btn-group-vertical">
+                <button class="btn btn-primary history-btn mb-2" id="undo-btn" title="Undo" disabled>
+                    <i class="fas fa-undo"></i>
+                </button>
+                <button class="btn btn-primary history-btn" id="redo-btn" title="Redo" disabled>
+                    <i class="fas fa-redo"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html>

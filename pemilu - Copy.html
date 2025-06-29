@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pemilihan Ketua MPK SMAN 23 Bandung</title>
+    <script src="https://cdn.tailwindcss.com/3.4.16"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1E88E5',
+                        secondary: '#FF9800'
+                    },
+                    borderRadius: {
+                        'none': '0px',
+                        'sm': '4px',
+                        DEFAULT: '8px',
+                        'md': '12px',
+                        'lg': '16px',
+                        'xl': '20px',
+                        '2xl': '24px',
+                        '3xl': '32px',
+                        'full': '9999px',
+                        'button': '8px'
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css">
+    <link rel="stylesheet" href="pemilu.css">
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Login Page -->
+    <div id="loginPage" class="page active flex-1 flex items-center justify-center p-4 login-container">
+        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
+            <div class="text-center mb-8">
+                <div class="flex justify-center mb-4">
+                    <div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+                        <i class="ri-school-line text-primary ri-2x"></i>
+                    </div>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-800">Pemilihan Ketua MPK</h1>
+                <p class="text-gray-600">SMAN 23 Bandung</p>
+                <p class="text-sm text-gray-500 mt-1">Periode 2025/2026</p>
+            </div>
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label for="nisn" class="block text-sm font-medium text-gray-700 mb-1">NISN (Nomor Induk Siswa Nasional)</label>
+                    <input type="number" id="nisn" name="nisn" placeholder="Masukkan NISN Anda" required class="bg-gray-50">
+                    <p id="nisnError" class="text-red-500 text-xs mt-1 hidden">NISN harus terdiri dari 10 digit</p>
+                </div>
+                <div>
+                    <label for="nipd" class="block text-sm font-medium text-gray-700 mb-1">NIPD (Nomor Induk Peserta Didik)</label>
+                    <input type="number" id="nipd" name="nipd" placeholder="Masukkan NIPD Anda" required class="bg-gray-50">
+                    <p id="nipdError" class="text-red-500 text-xs mt-1 hidden">NIPD tidak valid</p>
+                </div>
+                <div class="pt-2">
+                    <button type="submit" class="w-full bg-primary hover:bg-primary/90 text-white py-3 px-4 rounded-button font-medium transition-all whitespace-nowrap" id="">
+                        Masuk
+                    </button>
+                </div>
+                <div id="loginError" class="hidden bg-red-50 text-red-600 p-3 rounded-md text-sm text-center">
+                    NISN atau NIPD tidak valid. Silakan coba lagi.
+                </div>
+            </form>
+            <div class="mt-6 text-center">
+                <p class="text-xs text-gray-500">Jika mengalami kendala, silakan hubungi panitia pemilihan</p>
+                <p class="text-xs text-gray-500 mt-1">27 Juni 2025</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Voting Page -->
+    <div id="votingPage" class="page min-h-screen flex flex-col">
+        <header class="bg-white shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                        <i class="ri-school-line text-primary"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-semibold text-gray-800">Pemilihan Ketua MPK</h1>
+                        <p class="text-sm text-gray-600">SMAN 23 Bandung</p>
+                    </div>
+                </div>
+                <div>
+                    <span id="voterName" class="text-sm font-medium text-gray-700">Siswa</span>
+                    <button id="logoutBtn" class="ml-4 text-sm text-gray-500 hover:text-primary transition-colors">
+                        <i class="ri-logout-box-line align-text-bottom"></i> Keluar
+                    </button>
+                </div>
+            </div>
+        </header>
+        <main class="flex-1 max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+            <div class="mb-8 text-center">
+                <h2 class="text-2xl font-bold text-gray-800">Pilih Kandidat Ketua MPK</h2>
+                <p class="text-gray-600 mt-2">Pilihlah kandidat sesuai dengan visi dan misi yang selaras dengan harapan Anda</p>
+            </div>
+            <form id="votingForm">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Candidate 1 -->
+                    <div class="flex flex-col">
+                        <div class="card">
+                            <div class="card-inner">
+                                <div class="card-front bg-white shadow-md rounded-lg overflow-hidden">
+                                    <div class="relative overflow-hidden">
+                                        <img src="https://readdy.ai/api/search-image?query=professional%20portrait%20of%20an%20Indonesian%20male%20high%20school%20student%20wearing%20school%20uniform%2C%20looking%20confident%20and%20friendly%2C%20studio%20lighting%2C%20professional%20photography%2C%20clean%20background&width=400&height=400&seq=1&orientation=portrait" alt="Kandidat 1" class="candidate-img w-full">
+                                        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+                                            <span class="inline-block bg-primary text-white text-sm font-bold px-3 py-1 rounded-full">No. 1</span>
+                                        </div>
+                                    </div>
+                                    <div class="p-4">
+                                        <h3 class="text-lg font-semibold text-gray-800">Ahmad Fauzan</h3>
+                                        <p class="text-gray-600 text-sm">Kelas XII IPA 2</p>
+                                        <div class="mt-3">
+                                            <span class="text-xs text-gray-500">Ketuk untuk melihat visi & misi</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-back bg-gradient-to-br from-blue-50 to-blue-100 shadow-md">
+                                    <h3 class="text-lg font-semibold text-gray-800 mb-3">Visi:</h3>
+                                    <p class="text-gray-700 text-sm mb-4">Mewujudkan SMAN 23 Bandung sebagai sekolah yang unggul dalam prestasi akademik dan non-akademik dengan budaya literasi yang kuat dan karakter kepemimpinan yang berintegritas.</p>
+                                    <h3 class="text-lg font-semibold text-gray-800 mb-3">Misi:</h3>
+                                    <ul class="text-gray-700 text-sm space-y-2 list-disc pl-5">
+                                        <li>Mengembangkan program literasi digital dan konvensional</li>
+                                        <li>Meningkatkan kualitas kegiatan ekstrakurikuler</li>
+                                        <li>Membangun komunikasi yang efektif antara siswa dan guru</li>
+                                        <li>Menciptakan lingkungan sekolah yang nyaman dan kondusif</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3 flex items-center justify-center p-2 bg-gray-50 rounded-lg">
+                            <label class="custom-radio-large">
+                                <input type="radio" name="candidate" value="1" required>
+                                <span class="checkmark-large"></span>
+                                <span class="ml-2 text-sm font-medium text-gray-700">Pilih Ahmad Fauzan</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Candidate 2 -->
+                    <div class="flex flex-col">
+                        <div class="card">
+                            <div class="card-inner">
+                                <div class="card-front bg-white shadow-md rounded-lg overflow-hidden">
+                                    <div class="relative overflow-hidden">
+                                        <img src="https://readdy.ai/api/search-image?query=professional%20portrait%20of%20an%20Indonesian%20female%20high%20school%20student%20wearing%20school%20uniform%2C%20looking%20confident%20and%20friendly%2C%20studio%20lighting%2C%20professional%20photography%2C%20clean%20background&width=400&height=400&seq=2&orientation=portrait" alt="Kandidat 2" class="candidate-img w-full">
+                                        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+                                            <span class="inline-block bg-primary text-white text-sm font-bold px-3 py-1 rounded-full">No. 2</span>
+                                        </div>
+                                    </div>
+                                    <div class="p-4">
+                                        <h3 class="text-lg font-semibold text-gray-800">Siti Nurhaliza</h3>
+                                        <p class="text-gray-600 text-sm">Kelas XI IPS 1</p>
+                                        <div class="mt-3">
+                                            <span class="text-xs text-gray-500">Ketuk untuk melihat visi & misi</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-back bg-gradient-to-br from-purple-50 to-purple-100 shadow-md">
+                                    <h3 class="text-lg font-semibold text-gray-800 mb-3">Visi:</h3>
+                                    <p class="text-gray-700 text-sm mb-4">Menjadikan MPK sebagai wadah aspirasi siswa yang efektif dan menciptakan lingkungan sekolah yang inklusif, kreatif, dan berprestasi.</p>
+                                    <h3 class="text-lg font-semibold text-gray-800 mb-3">Misi:</h3>
+                                    <ul class="text-gray-700 text-sm space-y-2 list-disc pl-5">
+                                        <li>Membangun sistem komunikasi yang transparan</li>
+                                        <li>Mengadakan program pelatihan kepemimpinan bagi siswa</li>
+                                        <li>Mengembangkan kegiatan sosial dan lingkungan</li>
+                                        <li>Mendorong partisipasi aktif siswa dalam kegiatan sekolah</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3 flex items-center justify-center p-2 bg-gray-50 rounded-lg">
+                            <label class="custom-radio-large">
+                                <input type="radio" name="candidate" value="2" required>
+                                <span class="checkmark-large"></span>
+                                <span class="ml-2 text-sm font-medium text-gray-700">Pilih Siti Nurhaliza</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Candidate 3 -->
+                    <div class="flex flex-col">
+                        <div class="card">
+                            <div class="card-inner">
+                                <div class="card-front bg-white shadow-md rounded-lg overflow-hidden">
+                                    <div class="relative overflow-hidden">
+                                        <img src="https://readdy.ai/api/search-image?query=professional%20portrait%20of%20an%20Indonesian%20male%20high%20school%20student%20wearing%20school%20uniform%2C%20looking%20confident%20and%20friendly%2C%20studio%20lighting%2C%20professional%20photography%2C%20clean%20background&width=400&height=400&seq=3&orientation=portrait" alt="Kandidat 3" class="candidate-img w-full">
+                                        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+                                            <span class="inline-block bg-primary text-white text-sm font-bold px-3 py-1 rounded-full">No. 3</span>
+                                        </div>
+                                    </div>
+                                    <div class="p-4">
+                                        <h3 class="text-lg font-semibold text-gray-800">Budi Santoso</h3>
+                                        <p class="text-gray-600 text-sm">Kelas XII IPA 1</p>
+                                        <div class="mt-3">
+                                            <span class="text-xs text-gray-500">Ketuk untuk melihat visi & misi</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-back bg-gradient-to-br from-green-50 to-green-100 shadow-md">
+                                    <h3 class="text-lg font-semibold text-gray-800 mb-3">Visi:</h3>
+                                    <p class="text-gray-700 text-sm mb-4">Membangun MPK yang inovatif dan adaptif terhadap perkembangan teknologi dengan tetap menjunjung tinggi nilai-nilai karakter dan budaya Indonesia.</p>
+                                    <h3 class="text-lg font-semibold text-gray-800 mb-3">Misi:</h3>
+                                    <ul class="text-gray-700 text-sm space-y-2 list-disc pl-5">
+                                        <li>Mengintegrasikan teknologi dalam kegiatan organisasi</li>
+                                        <li>Menyelenggarakan kompetisi inovasi dan kreativitas</li>
+                                        <li>Memfasilitasi pengembangan bakat dan minat siswa</li>
+                                        <li>Menjalin kerjasama dengan organisasi sekolah lain</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3 flex items-center justify-center p-2 bg-gray-50 rounded-lg">
+                            <label class="custom-radio-large">
+                                <input type="radio" name="candidate" value="3" required>
+                                <span class="checkmark-large"></span>
+                                <span class="ml-2 text-sm font-medium text-gray-700">Pilih Budi Santoso</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Candidate 4 -->
+                    <div class="flex flex-col">
+                        <div class="card">
+                            <div class="card-inner">
+                                <div class="card-front bg-white shadow-md rounded-lg overflow-hidden">
+                                    <div class="relative overflow-hidden">
+                                        <img src="https://readdy.ai/api/search-image?query=professional%20portrait%20of%20an%20Indonesian%20female%20high%20school%20student%20wearing%20school%20uniform%2C%20looking%20confident%20and%20friendly%2C%20studio%20lighting%2C%20professional%20photography%2C%20clean%20background&width=400&height=400&seq=4&orientation=portrait" alt="Kandidat 4" class="candidate-img w-full">
+                                        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+                                            <span class="inline-block bg-primary text-white text-sm font-bold px-3 py-1 rounded-full">No. 4</span>
+                                        </div>
+                                    </div>
+                                    <div class="p-4">
+                                        <h3 class="text-lg font-semibold text-gray-800">Dewi Anggraini</h3>
+                                        <p class="text-gray-600 text-sm">Kelas XI IPA 3</p>
+                                        <div class="mt-3">
+                                            <span class="text-xs text-gray-500">Ketuk untuk melihat visi & misi</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-back bg-gradient-to-br from-orange-50 to-orange-100 shadow-md">
+                                    <h3 class="text-lg font-semibold text-gray-800 mb-3">Visi:</h3>
+                                    <p class="text-gray-700 text-sm mb-4">Menciptakan MPK yang responsif terhadap kebutuhan siswa dan mampu memfasilitasi pengembangan potensi siswa secara optimal.</p>
+                                    <h3 class="text-lg font-semibold text-gray-800 mb-3">Misi:</h3>
+                                    <ul class="text-gray-700 text-sm space-y-2 list-disc pl-5">
+                                        <li>Mengoptimalkan fungsi kotak saran digital</li>
+                                        <li>Mengadakan forum diskusi rutin antar kelas</li>
+                                        <li>Mengembangkan program mentoring akademik</li>
+                                        <li>Menyelenggarakan pelatihan soft skill untuk siswa</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3 flex items-center justify-center p-2 bg-gray-50 rounded-lg">
+                            <label class="custom-radio-large">
+                                <input type="radio" name="candidate" value="4" required id="candidate4Radio">
+                                <span class="checkmark-large"></span>
+                                <span class="ml-2 text-sm font-medium text-gray-700">Pilih Dewi Anggraini</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Candidate 5 -->
+                    <div class="flex flex-col">
+                        <div class="card">
+                            <div class="card-inner">
+                                <div class="card-front bg-white shadow-md rounded-lg overflow-hidden">
+                                    <div class="relative overflow-hidden">
+                                        <img src="https://readdy.ai/api/search-image?query=professional%20portrait%20of%20an%20Indonesian%20male%20high%20school%20student%20wearing%20school%20uniform%2C%20looking%20confident%20and%20friendly%2C%20studio%20lighting%2C%20professional%20photography%2C%20clean%20background&width=400&height=400&seq=5&orientation=portrait" alt="Kandidat 5" class="candidate-img w-full">
+                                        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+                                            <span class="inline-block bg-primary text-white text-sm font-bold px-3 py-1 rounded-full">No. 5</span>
+                                        </div>
+                                    </div>
+                                    <div class="p-4">
+                                        <h3 class="text-lg font-semibold text-gray-800">Reza Pratama</h3>
+                                        <p class="text-gray-600 text-sm">Kelas XII IPS 2</p>
+                                        <div class="mt-3">
+                                            <span class="text-xs text-gray-500">Ketuk untuk melihat visi & misi</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-back bg-gradient-to-br from-red-50 to-red-100 shadow-md">
+                                    <h3 class="text-lg font-semibold text-gray-800 mb-3">Visi:</h3>
+                                    <p class="text-gray-700 text-sm mb-4">Mewujudkan MPK sebagai organisasi yang berdedikasi pada pengembangan karakter, prestasi, dan kesejahteraan siswa SMAN 23 Bandung.</p>
+                                    <h3 class="text-lg font-semibold text-gray-800 mb-3">Misi:</h3>
+                                    <ul class="text-gray-700 text-sm space-y-2 list-disc pl-5">
+                                        <li>Menyelenggarakan program pendidikan karakter</li>
+                                        <li>Memfasilitasi kegiatan kompetisi antar kelas</li>
+                                        <li>Mengadakan kegiatan sosial untuk masyarakat sekitar</li>
+                                        <li>Membangun kerjasama dengan alumni untuk pengembangan sekolah</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3 flex items-center justify-center p-2 bg-gray-50 rounded-lg">
+                            <label class="custom-radio-large">
+                                <input type="radio" name="candidate" value="5" required>
+                                <span class="checkmark-large"></span>
+                                <span class="ml-2 text-sm font-medium text-gray-700">Pilih Reza Pratama</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-10 text-center">
+                    <button type="submit" id="submitVote" class="bg-primary hover:bg-primary/90 text-white py-3 px-8 rounded-button font-medium transition-all whitespace-nowrap">
+                        Submit Pilihan
+                    </button>
+                    <p class="text-sm text-gray-500 mt-3">Pastikan pilihan Anda sudah sesuai. Anda tidak dapat mengubah pilihan setelah submit.</p>
+                </div>
+            </form>
+        </main>
+        <footer class="bg-gray-50 border-t border-gray-200 py-6">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <p class="text-center text-sm text-gray-500">© 2025 SMAN 23 Bandung. Pemilihan Ketua MPK Periode 2025/2026</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmationModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+            <div class="text-center mb-4">
+                <div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+                    <i class="ri-question-line text-primary ri-2x"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800 mt-4">Konfirmasi Pilihan</h3>
+                <p class="text-gray-600 mt-2">Anda akan memilih <span id="selectedCandidate" class="font-medium"></span>. Pilihan tidak dapat diubah setelah dikonfirmasi.</p>
+            </div>
+            <div class="flex gap-3 mt-6">
+                <button id="cancelVote" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 py-2 px-4 rounded-button font-medium transition-all whitespace-nowrap">
+                    Kembali
+                </button>
+                <button id="confirmVote" class="flex-1 bg-primary hover:bg-primary/90 text-white py-2 px-4 rounded-button font-medium transition-all whitespace-nowrap">
+                    Konfirmasi
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Thank You Page -->
+    <div id="thankYouPage" class="page min-h-screen flex flex-col">
+        <div id="confettiContainer" class="absolute inset-0 overflow-hidden pointer-events-none"></div>
+        <div class="flex-1 flex flex-col items-center justify-center p-4">
+            <div class="bg-white rounded-lg shadow-lg p-8 max-w-lg w-full text-center">
+                <div class="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto">
+                    <i class="ri-check-line text-green-500 ri-3x"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-800 mt-6">Terima Kasih Atas Partisipasi Anda!</h2>
+                <p class="text-gray-600 mt-3">Suara Anda telah berhasil dicatat dalam sistem. Hasil pemilihan akan diumumkan pada tanggal 30 Juni 2025.</p>
+                <div class="mt-8 p-4 bg-blue-50 rounded-lg">
+                    <p class="text-sm text-gray-700">Pemilihan Ketua MPK SMAN 23 Bandung merupakan wujud dari pendidikan demokrasi dan kepemimpinan bagi siswa. Terima kasih telah berpartisipasi dengan penuh tanggung jawab.</p>
+                </div>
+                <div class="mt-8 flex justify-center gap-4">
+                    <button id="backToLoginBtn" class="bg-primary hover:bg-primary/90 text-white py-3 px-6 rounded-button font-medium transition-all whitespace-nowrap">
+                        <i class="ri-login-box-line mr-2"></i> Kembali ke Login
+                    </button>
+                    <button onclick="window.location.reload()" class="bg-gray-100 hover:bg-gray-200 text-gray-800 py-3 px-6 rounded-button font-medium transition-all whitespace-nowrap">
+                        <i class="ri-refresh-line mr-2"></i> Mulai Ulang
+                    </button>
+                </div>
+            </div>
+        </div>
+        <footer class="bg-gray-50 border-t border-gray-200 py-6">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <p class="text-center text-sm text-gray-500">© 2025 SMAN 23 Bandung. Pemilihan Ketua MPK Periode 2025/2026</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="pemilu.js"></script>
+</body>
+</html>
